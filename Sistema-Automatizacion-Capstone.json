@@ -1,0 +1,608 @@
+{
+  "name": "Sistema-Automatizacion-Capstone",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "Sistema-Automatizacion-Capstone",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -608,
+        -80
+      ],
+      "id": "8de58cc3-5119-47f8-b955-dc5fb3a3d338",
+      "name": "Webhook: Entrada de usuario recibida",
+      "webhookId": "3a12c4ce-a67d-48d7-98b8-a86a70ee8124"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6ad8fe23-52c2-4182-9a59-a3e9a6a5e262",
+              "leftValue": "={{$json.body.city}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -448,
+        -80
+      ],
+      "id": "f9bdf14f-aab8-44ed-914d-e4a7ca335aac",
+      "name": "Validar city"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": " {\n  \"error\": \"El campo ciudad es obligatorio\",\n  \"hint\": \"Por favor, incluye un nombre de ciudad válido en tu solicitud.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -304,
+        64
+      ],
+      "id": "4f562ac9-7dc2-4e0a-a1aa-04ba22f04209",
+      "name": "Webhook Error"
+    },
+    {
+      "parameters": {
+        "url": "=https://geocoding-api.open-meteo.com/v1/search?name={{ $json.body.city }}&count=1&language=en&format=json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -288,
+        -240
+      ],
+      "id": "1255a4f6-7e9f-4e4b-8ddc-9352152bf714",
+      "name": "HTTP Request API de geocodificación"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d7d7c12d-dfb2-42d3-a9b0-94a5b7e35b60",
+              "leftValue": "={{ $json.results[0] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -128,
+        -112
+      ],
+      "id": "d4586382-77b5-4532-898a-5da6a63ef25d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={ \"error\": \"Nombre de ciudad inválido\", \"pista\": \"Por favor, proporciona una ciudad válida como 'Londres'\", \"ejemplo\": {\"ciudad\": \"Londres\"} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        48,
+        0
+      ],
+      "id": "a48b21ae-b495-49c1-bc95-12ae3f18cf4a",
+      "name": "Webhook Error geocodificación"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"city\": \" {{ $json.results[0].name }} \",\n  \"latitude\": {{ $json.results[0].latitude }},\n  \"longitude\": {{ $json.results[0].longitude }}\n} ",
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        48,
+        -208
+      ],
+      "id": "d1add178-0098-42e3-8753-2bdd602331a0",
+      "name": "Datos City"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "494a3270-cb31-483d-9519-f4ce277b569d",
+              "leftValue": "={{ $json.current_weather }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        384,
+        -208
+      ],
+      "id": "421444f7-2398-41e5-8d09-3ecc79fc5013",
+      "name": "Verificar que la API devolvió resultados"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"El campo ciudad es obligatorio\",\n  \"hint\": \"Por favor, incluye un nombre de ciudad válido en tu solicitud.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        608,
+        0
+      ],
+      "id": "c422f5be-52c1-4ab3-b209-43d4b3b17f39",
+      "name": "Webhook Error 2"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"city\": \"{{ $('Datos City').item.json.results[0].name }}\",\n  \"temperature\": {{ $json.current_weather.temperature }},\n  \"windSpeed\": {{ $json.current_weather.windspeed }},\n  \"weatherCode\": {{ $json.current_weather.weathercode }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        608,
+        -224
+      ],
+      "id": "8c88e5a0-3e8f-4208-a108-1eb63b8eed98",
+      "name": "Campos meteorológicos"
+    },
+    {
+      "parameters": {
+        "url": "https://api.open-meteo.com/v1/forecast",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={\n  \"latitude\": {{ $('HTTP Request API de geocodificación').item.json.results[0].latitude }},\n  \"longitude\": {{ $('HTTP Request API de geocodificación').item.json.results[0].longitude }},\n  \"current_weather\": true\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        208,
+        -208
+      ],
+      "id": "6750ab2b-bc3d-4c86-9944-d240833011eb",
+      "name": "HTTP Request API Coordenadas"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json[' Recomendación de IA'] }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "Content-Type: text/plain"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1840,
+        -240
+      ],
+      "id": "d993ef44-7c7e-4770-8f43-b0fcba5724bb",
+      "name": "Éxito Webhook"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "=Da una breve recomendación de actividad para {{ $json.city }} con {{ $json.temperature }}°C y clima {{ $json.weatherType }}. Limítalo a una oración.\nHazlo útil y menciona qué ropa usar o qué actividad sería buena."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "instructions": "Eres un asistente útil que proporciona recomendaciones breves y prácticas basadas en las condiciones climáticas.",
+          "maxTokens": 100
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        1360,
+        -240
+      ],
+      "id": "bd82d38e-d645-4b25-a0cf-1af21ed871de",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b876edf9-c46a-47e6-bbc6-ee0a834b66b4",
+              "leftValue": "={{ $json.temperature }}",
+              "rightValue": 20,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        800,
+        -224
+      ],
+      "id": "7fe94412-9ac2-4099-a7f4-e63d0f68870f",
+      "name": "SI: Temperatura > 20°C"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"city\": \"{{ $json.city }}\",\n  \"temperature\": {{ $json.temperature }},\n  \"windSpeed\": {{ $json.windSpeed }},\n  \"weatherCode\": {{ $json.weatherCode }},\n  \"weatherType\": \"warm\"\n} ",
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1008,
+        -336
+      ],
+      "id": "44170aa7-74de-4a54-8721-bf740e702f29",
+      "name": "Clima Cálido"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"city\": \"{{ $json.city }}\",\n  \"temperature\": {{ $json.temperature }},\n  \"windSpeed\": {{ $json.windSpeed }},\n  \"weatherCode\": {{ $json.weatherCode }},\n  \"weatherType\": \"warm\"\n} ",
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1008,
+        -96
+      ],
+      "id": "c47fe95f-8078-47ff-abbb-90d7281133a7",
+      "name": "Clima fresco"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "425831a4-95fa-4658-9819-ea8462874b5c",
+              "name": " Recomendación de IA",
+              "value": "=🌍 Informe del Tiempo para {{ $('Merge').item.json.city }}\n🌡️ Temperatura: {{ $('Merge').item.json.temperature }}°C (clima {{ $('Merge').item.json.weatherType }})\n💡 Recomendación: {{ $json.output[0].content[0].text }}\n\nGenerado el {{new Date().toLocaleDateString('es-ES', { month: 'long', day: 'numeric', year: 'numeric' })}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1664,
+        -240
+      ],
+      "id": "290e0149-5896-49d1-8cf2-7b3716402fa7",
+      "name": "Recomendación de IA"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1200,
+        -240
+      ],
+      "id": "7a105391-e04f-45a5-a4e9-a699ad9fda28",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "content": "## https://hoppscotch.io/\n** POST\nhttps://irenemoor.app.n8n.cloud/webhook-test/Sistema-Automatizacion-Capstone",
+        "height": 176,
+        "width": 640
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1264,
+        80
+      ],
+      "typeVersion": 1,
+      "id": "d7a49e44-bb45-4ab9-a53a-a5cf60252f44",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook: Entrada de usuario recibida": {
+      "main": [
+        [
+          {
+            "node": "Validar city",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar city": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request API de geocodificación",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Webhook Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request API de geocodificación": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Datos City",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Webhook Error geocodificación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datos City": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request API Coordenadas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar que la API devolvió resultados": {
+      "main": [
+        [
+          {
+            "node": "Campos meteorológicos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Webhook Error 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Campos meteorológicos": {
+      "main": [
+        [
+          {
+            "node": "SI: Temperatura > 20°C",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request API Coordenadas": {
+      "main": [
+        [
+          {
+            "node": "Verificar que la API devolvió resultados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Recomendación de IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SI: Temperatura > 20°C": {
+      "main": [
+        [
+          {
+            "node": "Clima Cálido",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Clima fresco",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clima fresco": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Clima Cálido": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recomendación de IA": {
+      "main": [
+        [
+          {
+            "node": "Éxito Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "390893dc-2ac4-4b31-b752-b31bbf4c77cf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "10fd8a1a26c975519be66a83e965910355b71cbaecc66246d43cfa0776c6992c"
+  },
+  "nodeGroups": [],
+  "id": "pIvieuneb9DjLQFB",
+  "tags": []
+}
